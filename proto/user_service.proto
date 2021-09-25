@@ -1,0 +1,15 @@
+syntax = "proto3";
+package hongminhcbg.grpc_gateway.api;
+import "google/api/annotations.proto";
+import "user_model.proto";
+
+option go_package = "github.com/hongminhcbg/grpc-gateway/api";
+
+service UserService {
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/users"
+          body: "*"
+        };
+   }
+}
