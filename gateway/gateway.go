@@ -20,7 +20,9 @@ var grpcAddress string = "localhost:10000"
 var httpAddress string = "localhost:9000"
 
 func Run() error {
-	gmux := runtime.NewServeMux()
+	gmux := runtime.NewServeMux(
+		runtime.WithErrorHandler(CustomErrorHandler()),
+	)
 	mainService := service.NewService()
 	err := api.RegisterUserServiceHandlerServer(context.Background(), gmux, mainService)
 	if err != nil {
