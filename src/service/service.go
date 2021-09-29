@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hongminhcbg/grpc-gateway/api"
+	"google.golang.org/grpc/metadata"
 )
 
 type Service struct {
@@ -18,6 +19,13 @@ func NewService() *Service {
 }
 
 func (s *Service) CreateUser(ctx context.Context, req *api.CreateUserRequest) (*api.CreateUserResponse, error) {
+	headers, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		panic("get headers error")
+	}
+
+	fmt.Printf("headers = %v", headers)
+
 	if req.Name == "minh" {
 		log.Println("error")
 		return &api.CreateUserResponse{}, fmt.Errorf("name existed")
