@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -11,17 +12,14 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/hongminhcbg/grpc-gateway/api"
+	"github.com/hongminhcbg/grpc-gateway/conf"
 	"github.com/hongminhcbg/grpc-gateway/src/service"
 )
 
-var httpPort string = "9000"
-var grpcPort string = "10000"
-var grpcAddress string = "localhost:10000"
-var httpAddress string = "localhost:9000"
-
-func Run() error {
+func Run(config *conf.Config) error {
 	gmux := runtime.NewServeMux(
 		runtime.WithErrorHandler(CustomErrorHandler()),
+		runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher(config)),
 	)
 	mainService := service.NewService()
 	err := api.RegisterUserServiceHandlerServer(context.Background(), gmux, mainService)
@@ -30,7 +28,7 @@ func Run() error {
 	}
 
 	gw := *&http.Server{
-		Addr: httpAddress,
+		Addr: fmt.Sprintf("0.0.0.0%s", config.HttpPort),
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if strings.HasPrefix(r.URL.Path, "/api") {
 				gmux.ServeHTTP(w, r)
@@ -45,7 +43,7 @@ func Run() error {
 	}
 
 	go func() {
-		log.Printf("starting http server at address %s\n", httpAddress)
+		log.Printf("starting http server at address %s\n", config.HttpPort)
 		err = gw.ListenAndServe()
 		if err != nil {
 			panic("start http gateway error" + err.Error())
@@ -53,8 +51,8 @@ func Run() error {
 	}()
 
 	go func() {
-		log.Printf("starting grpc server at address %s\n", grpcAddress)
-		lis, err := net.Listen("tcp", grpcAddress)
+		log.Printf("starting grpc server at address %s\n", config.GrpcPort)
+		lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0%s", config.GrpcPort))
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
