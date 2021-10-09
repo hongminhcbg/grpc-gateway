@@ -8,13 +8,23 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hongminhcbg/grpc-gateway/conf"
+	"github.com/hongminhcbg/grpc-gateway/src/erp"
 )
+
+const defaultError = `{"code": "500000", "message": "internal server error"}`
 
 func CustomErrorHandler() runtime.ErrorHandlerFunc {
 	return func(ctx context.Context, _ *runtime.ServeMux, _ runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
-		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
-		w.Write([]byte(fmt.Sprintf("{\"code\": 0, \"message\": \"%s\"}", err.Error())))
+		appErr, ok := err.(*erp.ApplicationError)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(defaultError))
+			return
+		}
+
+		w.WriteHeader(appErr.Code / 1000)
+		w.Write([]byte(fmt.Sprintf("{\"code\": %d, \"message\": \"%s\"}", appErr.Code, appErr.Message)))
 	}
 }
 

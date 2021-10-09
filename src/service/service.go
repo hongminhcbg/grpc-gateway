@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hongminhcbg/grpc-gateway/api"
+	"github.com/hongminhcbg/grpc-gateway/src/erp"
 	"github.com/hongminhcbg/grpc-gateway/src/logger"
 	"google.golang.org/grpc/metadata"
 )
@@ -23,13 +24,13 @@ func (s *Service) CreateUser(ctx context.Context, req *api.CreateUserRequest) (*
 	headers, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		logger.Error(fmt.Errorf("Get headers error"), "Get header error")
-		return nil, fmt.Errorf("internal server error")
+		return nil, erp.ErrorInternalServer
 	}
 
 	logger.Infor("Get header success", "headers", headers)
 	if req.Name == "minh" {
 		logger.Error(fmt.Errorf("create user error"), "create user error")
-		return &api.CreateUserResponse{}, fmt.Errorf("name existed")
+		return &api.CreateUserResponse{}, erp.ErrorBadRequest
 	}
 
 	log.Println("create user success")
