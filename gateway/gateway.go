@@ -6,6 +6,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -75,5 +78,15 @@ func (g *Gateway) Run() error {
 		}
 	}()
 
-	return nil
+	c := make(chan os.Signal, 1)
+	signal.Notify(c)
+	for {
+		select {
+		case sig := <-c:
+			if sig == syscall.SIGKILL || sig == syscall.SIGINT {
+				log.Println("Received signal kill process")
+				return nil
+			}
+		}
+	}
 }
