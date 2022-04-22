@@ -21,6 +21,7 @@ const (
 )
 
 type CreateUserRequest struct {
+
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
