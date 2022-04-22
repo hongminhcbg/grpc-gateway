@@ -1,7 +1,15 @@
 # grpc-gateway: Run http server and grpc server in same pod
 
+Pre: 
+	Install tool https://github.com/bufbuild/buf
+	
+	
 I. How to run this example
-
+    
+    $ buf generate ## generate service
+    
+    $ go mod tidy && go mod vendor
+    
     $ go build -o server cmd/server/main.go && ./server
     
     you will see server listening in two port
