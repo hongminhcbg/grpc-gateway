@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
@@ -28,6 +29,11 @@ func NewGateway(config *conf.Config, middlewares []func(http.Handler) http.Handl
 		config:      config,
 		middlewares: middlewares,
 	}
+}
+
+func customMiddleware(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	log.Println("req = ", req, "method = ", info.FullMethod)
+	return handler(ctx, req)
 }
 
 func (g *Gateway) Run() error {
@@ -50,7 +56,7 @@ func (g *Gateway) Run() error {
 	muxServer := http.NewServeMux()
 	muxServer.Handle("/", hannler)
 
-	gw := *&http.Server{
+	gw := http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0%s", g.config.HttpPort),
 		Handler: muxServer,
 	}
@@ -70,7 +76,11 @@ func (g *Gateway) Run() error {
 			log.Fatalf("failed to listen: %v", err)
 		}
 
-		s := grpc.NewServer()
+		s := grpc.NewServer(
+			grpc.UnaryInterceptor(
+				grpc_middleware.ChainUnaryServer(customMiddleware),
+			),
+		)
 		api.RegisterUserServiceServer(s, mainService)
 		err = s.Serve(lis)
 		if err != nil {

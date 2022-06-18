@@ -54,3 +54,12 @@ II. headers support:
 		"Via",
 		"Warning":
 
+III. Notes 
+
+		s := grpc.NewServer(
+			grpc.UnaryInterceptor(
+				grpc_middleware.ChainUnaryServer(customMiddleware),
+			),
+		)
+    // grpc middleware only for grpc, not for http request
+ 
